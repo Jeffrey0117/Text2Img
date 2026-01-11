@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Img+Text - 圖片加字</title>
   
-  <!-- Google Fonts - 中文開源字型 -->
+  <!-- Google Fonts - 確定能用的中文字型 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Huninn&family=Iansui&family=LXGW+WenKai+TC&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;500;700&family=Dela+Gothic+One&family=Zen+Maru+Gothic:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Huninn&family=Iansui&family=LXGW+WenKai+TC&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;500;700&family=Klee+One&family=Zen+Maru+Gothic:wght@400;500&family=Dela+Gothic+One&family=Kosugi+Maru&family=Yusei+Magic&family=DotGothic16&display=swap" rel="stylesheet">
   
   <style>
     :root {
@@ -202,6 +202,32 @@
       font-family: monospace;
     }
 
+    .section-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding-right: 8px;
+      border-right: 2px solid var(--accent);
+      margin-right: 8px;
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .checkbox-label input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
     /* Preview */
     .preview-section {
       margin-bottom: 32px;
@@ -347,6 +373,7 @@
     </div>
 
     <div class="controls">
+      <!-- 文字設定 -->
       <div class="control-row">
         <div class="control-group" style="flex: 1;">
           <label>文字</label>
@@ -360,18 +387,35 @@
           複製圖片
         </button>
       </div>
-      
+
+      <!-- 文字樣式 -->
       <div class="control-row">
+        <span class="section-label">文字</span>
+        
         <div class="control-group">
           <label>字型</label>
           <select id="fontSelect">
-            <option value="Huninn">粉圓</option>
-            <option value="Iansui">芫荽</option>
-            <option value="LXGW WenKai TC">霞鶩文楷</option>
-            <option value="Noto Sans TC">思源黑體</option>
-            <option value="Noto Serif TC">思源宋體</option>
-            <option value="Dela Gothic One">超粗黑體</option>
-            <option value="Zen Maru Gothic">禪丸黑體</option>
+            <optgroup label="台灣專用">
+              <option value="Huninn">jf open 粉圓</option>
+              <option value="Iansui">芫荽</option>
+            </optgroup>
+            <optgroup label="楷書">
+              <option value="LXGW WenKai TC">霞鶩文楷 TC</option>
+              <option value="Klee One">Klee One</option>
+            </optgroup>
+            <optgroup label="黑體">
+              <option value="Noto Sans TC">思源黑體</option>
+              <option value="Zen Maru Gothic">禪丸黑體（圓）</option>
+              <option value="Kosugi Maru">小杉圓體</option>
+            </optgroup>
+            <optgroup label="宋/明體">
+              <option value="Noto Serif TC">思源宋體</option>
+            </optgroup>
+            <optgroup label="特殊風格">
+              <option value="Dela Gothic One">超粗黑體</option>
+              <option value="Yusei Magic">油性魔術</option>
+              <option value="DotGothic16">點陣黑體 16</option>
+            </optgroup>
           </select>
         </div>
         
@@ -382,19 +426,37 @@
         </div>
         
         <div class="control-group">
-          <label>文字色</label>
+          <label>顏色</label>
           <input type="color" id="textColor" value="#000000">
         </div>
         
         <div class="control-group">
-          <label>背景色</label>
-          <input type="color" id="bgColor" value="#ffffff">
+          <label>底色</label>
+          <input type="color" id="textBgColor" value="#ffffff">
+          <label class="checkbox-label">
+            <input type="checkbox" id="textBgTransparent">
+            透明
+          </label>
+        </div>
+      </div>
+
+      <!-- 圖片設定 -->
+      <div class="control-row">
+        <span class="section-label">圖片</span>
+        
+        <div class="control-group">
+          <label>底色</label>
+          <input type="color" id="imgBgColor" value="#ffffff">
+          <label class="checkbox-label">
+            <input type="checkbox" id="imgBgTransparent" checked>
+            透明
+          </label>
         </div>
         
         <div class="control-group">
-          <label>間距</label>
-          <input type="range" id="padding" min="8" max="48" value="16">
-          <span class="value" id="paddingValue">16px</span>
+          <label>邊距</label>
+          <input type="range" id="imgPadding" min="0" max="48" value="16">
+          <span class="value" id="imgPaddingValue">16px</span>
         </div>
       </div>
     </div>
@@ -428,9 +490,12 @@
     const fontSize = document.getElementById('fontSize');
     const fontSizeValue = document.getElementById('fontSizeValue');
     const textColor = document.getElementById('textColor');
-    const bgColor = document.getElementById('bgColor');
-    const padding = document.getElementById('padding');
-    const paddingValue = document.getElementById('paddingValue');
+    const textBgColor = document.getElementById('textBgColor');
+    const textBgTransparent = document.getElementById('textBgTransparent');
+    const imgBgColor = document.getElementById('imgBgColor');
+    const imgBgTransparent = document.getElementById('imgBgTransparent');
+    const imgPadding = document.getElementById('imgPadding');
+    const imgPaddingValue = document.getElementById('imgPaddingValue');
     const previewCanvas = document.getElementById('previewCanvas');
     const copyBtn = document.getElementById('copyBtn');
     const clearBtn = document.getElementById('clearBtn');
@@ -503,8 +568,9 @@
       const font = fontSelect.value;
       const size = parseInt(fontSize.value);
       const txtColor = textColor.value;
-      const bg = bgColor.value;
-      const pad = parseInt(padding.value);
+      const txtBg = textBgTransparent.checked ? null : textBgColor.value;
+      const imgBg = imgBgTransparent.checked ? null : imgBgColor.value;
+      const pad = parseInt(imgPadding.value);
       
       // Wait for font
       await document.fonts.ready;
@@ -514,7 +580,7 @@
         // Empty state
         previewCanvas.width = 300;
         previewCanvas.height = 200;
-        ctx.fillStyle = bg;
+        ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, 300, 200);
         ctx.fillStyle = '#999';
         ctx.font = '14px "DM Sans"';
@@ -527,8 +593,7 @@
       const imgH = uploadedImage.height;
       
       // Calculate text height
-      ctx.font = `${size}px "${font}"`;
-      const textHeight = text ? size * 1.4 + pad * 2 : 0;
+      const textHeight = text ? size * 1.4 + 16 : 0;
       
       // Set canvas size
       const canvasW = imgW + pad * 2;
@@ -537,20 +602,34 @@
       previewCanvas.width = canvasW;
       previewCanvas.height = canvasH;
       
-      // Background
-      ctx.fillStyle = bg;
-      ctx.fillRect(0, 0, canvasW, canvasH);
+      // Clear (transparent)
+      ctx.clearRect(0, 0, canvasW, canvasH);
+      
+      // Image background (optional)
+      if (imgBg) {
+        ctx.fillStyle = imgBg;
+        ctx.fillRect(0, 0, canvasW, imgH + pad * 2);
+      }
       
       // Image
       ctx.drawImage(uploadedImage, pad, pad, imgW, imgH);
       
-      // Text
+      // Text area
       if (text) {
+        const textY = imgH + pad * 2;
+        
+        // Text background (optional)
+        if (txtBg) {
+          ctx.fillStyle = txtBg;
+          ctx.fillRect(0, textY, canvasW, textHeight);
+        }
+        
+        // Text
         ctx.font = `${size}px "${font}"`;
         ctx.fillStyle = txtColor;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(text, canvasW / 2, imgH + pad * 2 + textHeight / 2);
+        ctx.fillText(text, canvasW / 2, textY + textHeight / 2);
       }
     }
 
@@ -562,9 +641,12 @@
       renderPreview();
     });
     textColor.addEventListener('input', renderPreview);
-    bgColor.addEventListener('input', renderPreview);
-    padding.addEventListener('input', () => {
-      paddingValue.textContent = padding.value + 'px';
+    textBgColor.addEventListener('input', renderPreview);
+    textBgTransparent.addEventListener('change', renderPreview);
+    imgBgColor.addEventListener('input', renderPreview);
+    imgBgTransparent.addEventListener('change', renderPreview);
+    imgPadding.addEventListener('input', () => {
+      imgPaddingValue.textContent = imgPadding.value + 'px';
       renderPreview();
     });
 
