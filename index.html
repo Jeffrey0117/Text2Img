@@ -337,16 +337,16 @@
       <div class="toolbar">
         <div class="toolbar-group">
           <span class="toolbar-label">大小</span>
-          <input type="range" id="selSize" min="12" max="120" value="48">
+          <input type="range" id="selSize" min="12" max="120" value="48" onmousedown="event.stopPropagation()">
           <span class="toolbar-value" id="selSizeValue">48px</span>
-          <button class="toolbar-btn" id="applySize">套用</button>
+          <button class="toolbar-btn" id="applySize" onmousedown="event.preventDefault()">套用</button>
         </div>
         
         <div class="toolbar-divider"></div>
         
         <div class="toolbar-group">
           <span class="toolbar-label">粗體</span>
-          <button class="toolbar-btn" id="toggleBold"><b>B</b></button>
+          <button class="toolbar-btn" id="toggleBold" onmousedown="event.preventDefault()"><b>B</b></button>
         </div>
         
         <div class="toolbar-divider"></div>
@@ -354,7 +354,6 @@
         <div class="toolbar-group">
           <span class="toolbar-label">文字色</span>
           <input type="color" id="foreColor" value="#000000">
-          <button class="toolbar-btn" id="applyColor">套用</button>
         </div>
         
         <div class="toolbar-divider"></div>
@@ -362,14 +361,14 @@
         <div class="toolbar-group">
           <span class="toolbar-label">底色</span>
           <input type="color" id="hiliteColor" value="#ffff00">
-          <button class="toolbar-btn" id="applyHilite">套用</button>
-          <button class="toolbar-btn" id="removeHilite">清除</button>
+          <button class="toolbar-btn" id="applyHilite" onmousedown="event.preventDefault()">套用</button>
+          <button class="toolbar-btn" id="removeHilite" onmousedown="event.preventDefault()">清除</button>
         </div>
         
         <div class="toolbar-divider"></div>
         
         <div class="toolbar-group">
-          <button class="toolbar-btn" id="clearAll">清除全部格式</button>
+          <button class="toolbar-btn" id="clearAll" onmousedown="event.preventDefault()">清除全部格式</button>
         </div>
       </div>
       
@@ -437,6 +436,27 @@
     const selSizeValue = document.getElementById('selSizeValue');
     const toast = document.getElementById('toast');
 
+    // 保存選取範圍
+    let savedRange = null;
+    
+    editor.addEventListener('mouseup', saveSelection);
+    editor.addEventListener('keyup', saveSelection);
+    
+    function saveSelection() {
+      const sel = window.getSelection();
+      if (sel.rangeCount > 0 && editor.contains(sel.anchorNode)) {
+        savedRange = sel.getRangeAt(0).cloneRange();
+      }
+    }
+    
+    function restoreSelection() {
+      if (savedRange) {
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(savedRange);
+      }
+    }
+
     // Slider display
     selSize.addEventListener('input', () => {
       selSizeValue.textContent = selSize.value + 'px';
@@ -444,6 +464,7 @@
 
     // Apply size to selection
     document.getElementById('applySize').addEventListener('click', () => {
+      restoreSelection();
       const size = selSize.value + 'px';
       applyStyleToSelection('fontSize', size);
       renderAll();
@@ -451,29 +472,34 @@
 
     // Bold toggle
     document.getElementById('toggleBold').addEventListener('click', () => {
+      restoreSelection();
       document.execCommand('bold');
       renderAll();
     });
 
     // Apply color to selection
-    document.getElementById('applyColor').addEventListener('click', () => {
+    foreColor.addEventListener('change', () => {
+      restoreSelection();
       document.execCommand('foreColor', false, foreColor.value);
       renderAll();
     });
 
     // Highlight
     document.getElementById('applyHilite').addEventListener('click', () => {
+      restoreSelection();
       document.execCommand('hiliteColor', false, hiliteColor.value);
       renderAll();
     });
 
     document.getElementById('removeHilite').addEventListener('click', () => {
+      restoreSelection();
       document.execCommand('hiliteColor', false, 'transparent');
       renderAll();
     });
 
     // Clear all
     document.getElementById('clearAll').addEventListener('click', () => {
+      restoreSelection();
       document.execCommand('removeFormat');
       renderAll();
     });
@@ -481,27 +507,31 @@
     // Apply custom style to selection (for font-size with exact px)
     function applyStyleToSelection(prop, value) {
       const sel = window.getSelection();
-      if (!sel.rangeCount) return;
+      if (!sel.rangeCount || sel.isCollapsed) return;
       
-      const range = sel.getRangeAt(0);
-      if (range.collapsed) return;
+      // 先用 execCommand 插入一個可識別的 font size
+      document.execCommand('fontSize', false, '7');
       
-      const span = document.createElement('span');
-      span.style[prop] = value;
+      // 找到剛插入的 font[size="7"] 元素並修改
+      const fontElements = editor.querySelectorAll('font[size="7"]');
+      fontElements.forEach(el => {
+        el.removeAttribute('size');
+        el.style.fontSize = value;
+      });
       
-      try {
-        range.surroundContents(span);
-        sel.removeAllRanges();
-        sel.addRange(range);
-      } catch (e) {
-        // 如果選取跨越多個元素，用 execCommand fallback
-        document.execCommand('fontSize', false, '7');
-        // 然後手動修改
-        const fontElements = editor.querySelectorAll('font[size="7"]');
-        fontElements.forEach(el => {
-          el.removeAttribute('size');
-          el.style.fontSize = value;
-        });
+      // 如果沒有找到 font 元素，嘗試用 span 包裝
+      if (fontElements.length === 0) {
+        const range = sel.getRangeAt(0);
+        const span = document.createElement('span');
+        span.style[prop] = value;
+        try {
+          range.surroundContents(span);
+        } catch (e) {
+          // 選取跨越多個元素時，提取內容再包裝
+          const contents = range.extractContents();
+          span.appendChild(contents);
+          range.insertNode(span);
+        }
       }
     }
 
@@ -619,20 +649,30 @@
           // Handle line breaks
           if (node.tagName === 'BR') {
             segments.push({ text: '\n', size, color, bg, bold });
-          } else if (node.tagName === 'DIV' || node.tagName === 'P') {
-            if (segments.length > 0 && segments[segments.length - 1].text !== '\n') {
-              segments.push({ text: '\n', size, color, bg, bold });
-            }
           }
+          
+          // 判斷是否為塊級元素
+          const isBlock = node.tagName === 'DIV' || node.tagName === 'P';
 
           // Traverse children
           for (const child of node.childNodes) {
             traverse(child, { size, color, bg, bold });
           }
+          
+          // 塊級元素結束後加換行（除非已經是換行）
+          if (isBlock && segments.length > 0 && segments[segments.length - 1].text !== '\n') {
+            segments.push({ text: '\n', size, color, bg, bold });
+          }
         }
       }
 
       traverse(editor, { size: defaultSize, color: defaultClr, bg: null, bold: false });
+      
+      // 移除結尾多餘的換行
+      while (segments.length > 0 && segments[segments.length - 1].text === '\n') {
+        segments.pop();
+      }
+      
       return segments;
     }
 
