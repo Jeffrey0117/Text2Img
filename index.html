@@ -337,15 +337,13 @@
       <div class="toolbar">
         <div class="toolbar-group">
           <span class="toolbar-label">大小</span>
-          <input type="range" id="selSize" min="12" max="120" value="48" onmousedown="event.stopPropagation()">
+          <input type="range" id="selSize" min="12" max="120" value="48">
           <span class="toolbar-value" id="selSizeValue">48px</span>
-          <button class="toolbar-btn" id="applySize" onmousedown="event.preventDefault()">套用</button>
         </div>
         
         <div class="toolbar-divider"></div>
         
         <div class="toolbar-group">
-          <span class="toolbar-label">粗體</span>
           <button class="toolbar-btn" id="toggleBold" onmousedown="event.preventDefault()"><b>B</b></button>
         </div>
         
@@ -361,7 +359,6 @@
         <div class="toolbar-group">
           <span class="toolbar-label">底色</span>
           <input type="color" id="hiliteColor" value="#ffff00">
-          <button class="toolbar-btn" id="applyHilite" onmousedown="event.preventDefault()">套用</button>
           <button class="toolbar-btn" id="removeHilite" onmousedown="event.preventDefault()">清除</button>
         </div>
         
@@ -441,6 +438,12 @@
     
     editor.addEventListener('mouseup', saveSelection);
     editor.addEventListener('keyup', saveSelection);
+    editor.addEventListener('select', saveSelection);
+    
+    // 工具列互動前保存選取
+    document.querySelector('.toolbar').addEventListener('mousedown', () => {
+      saveSelection();
+    });
     
     function saveSelection() {
       const sel = window.getSelection();
@@ -451,19 +454,20 @@
     
     function restoreSelection() {
       if (savedRange) {
+        editor.focus();
         const sel = window.getSelection();
         sel.removeAllRanges();
         sel.addRange(savedRange);
       }
     }
 
-    // Slider display
+    // Slider 顯示即時更新
     selSize.addEventListener('input', () => {
       selSizeValue.textContent = selSize.value + 'px';
     });
-
-    // Apply size to selection
-    document.getElementById('applySize').addEventListener('click', () => {
+    
+    // 放開滑桿時套用大小
+    selSize.addEventListener('change', () => {
       restoreSelection();
       const size = selSize.value + 'px';
       applyStyleToSelection('fontSize', size);
@@ -477,15 +481,15 @@
       renderAll();
     });
 
-    // Apply color to selection
-    foreColor.addEventListener('change', () => {
+    // 即時套用文字色
+    foreColor.addEventListener('input', () => {
       restoreSelection();
       document.execCommand('foreColor', false, foreColor.value);
       renderAll();
     });
 
-    // Highlight
-    document.getElementById('applyHilite').addEventListener('click', () => {
+    // 即時套用底色
+    hiliteColor.addEventListener('input', () => {
       restoreSelection();
       document.execCommand('hiliteColor', false, hiliteColor.value);
       renderAll();
