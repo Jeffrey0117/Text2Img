@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Text2Img - 文字轉圖片</title>
+  
+  <!-- Google Fonts - 中文開源字型 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Huninn&family=Iansui&family=LXGW+WenKai+TC&family=LXGW+WenKai+Mono+TC&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;500;700&family=Dela+Gothic+One&family=Zen+Maru+Gothic:wght@400;500&family=Zen+Kaku+Gothic+New:wght@400;500&family=DotGothic16&family=Yusei+Magic&family=Klee+One&family=Kosugi+Maru&display=swap" rel="stylesheet">
+  
+
+  
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --surface: #141414;
+      --surface-hover: #1a1a1a;
+      --border: #262626;
+      --text: #fafafa;
+      --text-muted: #737373;
+      --accent: #22c55e;
+      --accent-dim: rgba(34, 197, 94, 0.1);
+      --radius: 8px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'DM Sans', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 48px 24px;
+    }
+
+    /* Header */
+    .header {
+      margin-bottom: 40px;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      color: var(--text-muted);
+      font-size: 15px;
+    }
+
+    /* Controls */
+    .controls {
+      display: grid;
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    .input-section textarea {
+      width: 100%;
+      min-height: 120px;
+      padding: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 16px;
+      resize: vertical;
+      transition: border-color 0.2s;
+    }
+
+    .input-section textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .input-section textarea::placeholder {
+      color: var(--text-muted);
+    }
+
+    .settings {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      padding: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    .setting-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .setting-group label {
+      font-size: 13px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .setting-group input[type="range"] {
+      width: 120px;
+      height: 4px;
+      -webkit-appearance: none;
+      background: var(--border);
+      border-radius: 2px;
+      cursor: pointer;
+    }
+
+    .setting-group input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      background: var(--accent);
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .setting-group .value {
+      font-size: 13px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text);
+      min-width: 40px;
+    }
+
+    .setting-group input[type="color"] {
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      background: transparent;
+    }
+
+    .setting-group input[type="color"]::-webkit-color-swatch-wrapper {
+      padding: 0;
+    }
+
+    .setting-group input[type="color"]::-webkit-color-swatch {
+      border: 2px solid var(--border);
+      border-radius: 4px;
+    }
+
+    /* Toggle Switch */
+    .toggle-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toggle {
+      position: relative;
+      width: 44px;
+      height: 24px;
+    }
+
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background: var(--border);
+      border-radius: 12px;
+      transition: 0.2s;
+    }
+
+    .toggle-slider:before {
+      content: "";
+      position: absolute;
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background: var(--text);
+      border-radius: 50%;
+      transition: 0.2s;
+    }
+
+    .toggle input:checked + .toggle-slider {
+      background: var(--accent);
+    }
+
+    .toggle input:checked + .toggle-slider:before {
+      transform: translateX(20px);
+    }
+
+    .toggle-label {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* Divider */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 8px 0;
+    }
+
+    /* Font Cards */
+    .cards-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .font-card {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+
+    .font-card:hover {
+      border-color: #404040;
+    }
+
+    .font-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .font-name {
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted);
+    }
+
+    .copy-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: var(--accent-dim);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .copy-btn.copied {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #000;
+    }
+
+    .copy-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .font-preview-wrapper {
+      padding: 40px;
+      min-height: 100px;
+      display: flex;
+      align-items: center;
+      background: #f5f5f5;
+      /* 棋盤格表示透明 */
+      background-image: 
+        linear-gradient(45deg, #e0e0e0 25%, transparent 25%),
+        linear-gradient(-45deg, #e0e0e0 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #e0e0e0 75%),
+        linear-gradient(-45deg, transparent 75%, #e0e0e0 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+    }
+
+    .font-preview-wrapper.white-bg {
+      background: #ffffff;
+      background-image: none;
+    }
+
+    .font-preview {
+      width: 100%;
+      word-break: break-word;
+      white-space: pre-wrap;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--accent);
+      color: #000;
+      padding: 12px 20px;
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+
+    .empty-state svg {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .container {
+        padding: 24px 16px;
+      }
+
+      .settings {
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .font-preview-wrapper {
+        padding: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>Text2Img</h1>
+      <p>中文開源字型預覽 → 一鍵複製圖片</p>
+    </header>
+
+    <div class="controls">
+      <div class="input-section">
+        <textarea id="textInput" placeholder="輸入你的文字...&#10;支援多行"></textarea>
+      </div>
+
+      <div class="settings">
+        <div class="setting-group">
+          <label>字體大小</label>
+          <input type="range" id="fontSize" min="16" max="120" value="48">
+          <span class="value" id="fontSizeValue">48px</span>
+        </div>
+
+        <div class="setting-group">
+          <label>文字顏色</label>
+          <input type="color" id="fontColor" value="#000000">
+        </div>
+
+        <div class="setting-group">
+          <div class="toggle-wrapper">
+            <label class="toggle">
+              <input type="checkbox" id="transparentBg" checked>
+              <span class="toggle-slider"></span>
+            </label>
+            <span class="toggle-label">透明背景</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="cards-container" id="cardsContainer">
+      <!-- Font cards will be generated here -->
+    </div>
+  </div>
+
+  <div class="toast" id="toast">已複製到剪貼簿</div>
+
+  <script>
+    // 中文開源字型清單
+    const fonts = [
+      { name: 'Huninn', displayName: 'jf open 粉圓', category: 'sans-serif' },
+      { name: 'Iansui', displayName: '芫荽', category: 'serif' },
+      { name: 'LXGW WenKai TC', displayName: '霞鶩文楷 TC', category: 'serif' },
+      { name: 'LXGW WenKai Mono TC', displayName: '霞鶩文楷等寬 TC', category: 'monospace' },
+      { name: 'Noto Sans TC', displayName: '思源黑體', category: 'sans-serif' },
+      { name: 'Noto Serif TC', displayName: '思源宋體', category: 'serif' },
+      { name: 'Dela Gothic One', displayName: '超粗黑體', category: 'sans-serif' },
+      { name: 'Zen Maru Gothic', displayName: '禪丸黑體', category: 'sans-serif' },
+      { name: 'Zen Kaku Gothic New', displayName: '禪角黑體', category: 'sans-serif' },
+      { name: 'DotGothic16', displayName: '點陣黑體 16', category: 'sans-serif' },
+      { name: 'Yusei Magic', displayName: '油性魔術', category: 'sans-serif' },
+      { name: 'Klee One', displayName: 'Klee One', category: 'serif' },
+      { name: 'Kosugi Maru', displayName: '小杉圓體', category: 'sans-serif' },
+    ];
+
+    // DOM elements
+    const textInput = document.getElementById('textInput');
+    const fontSize = document.getElementById('fontSize');
+    const fontSizeValue = document.getElementById('fontSizeValue');
+    const fontColor = document.getElementById('fontColor');
+    const transparentBg = document.getElementById('transparentBg');
+    const cardsContainer = document.getElementById('cardsContainer');
+    const toast = document.getElementById('toast');
+
+    // Generate font cards
+    function generateCards() {
+      cardsContainer.innerHTML = '';
+      
+      fonts.forEach((font, index) => {
+        const card = document.createElement('div');
+        card.className = 'font-card';
+        card.innerHTML = `
+          <div class="font-card-header">
+            <span class="font-name">${font.displayName} <span style="opacity:0.5">${font.name}</span></span>
+            <button class="copy-btn" data-index="${index}">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Copy PNG
+            </button>
+          </div>
+          <div class="font-preview-wrapper" data-index="${index}">
+            <div class="font-preview" style="font-family: '${font.name}', ${font.category};">
+              ${textInput.value || '預覽文字 ABC 123'}
+            </div>
+          </div>
+        `;
+        cardsContainer.appendChild(card);
+      });
+
+      updatePreviews();
+    }
+
+    // Update all previews
+    function updatePreviews() {
+      const text = textInput.value || '預覽文字 ABC 123';
+      const size = fontSize.value + 'px';
+      const color = fontColor.value;
+      const isTransparent = transparentBg.checked;
+
+      document.querySelectorAll('.font-preview').forEach(preview => {
+        preview.textContent = text;
+        preview.style.fontSize = size;
+        preview.style.color = color;
+      });
+
+      document.querySelectorAll('.font-preview-wrapper').forEach(wrapper => {
+        if (isTransparent) {
+          wrapper.classList.remove('white-bg');
+        } else {
+          wrapper.classList.add('white-bg');
+        }
+      });
+
+      fontSizeValue.textContent = size;
+    }
+
+    // Copy to clipboard using Canvas
+    async function copyToClipboard(index) {
+      const btn = document.querySelector(`.copy-btn[data-index="${index}"]`);
+      const font = fonts[index];
+      
+      try {
+        const text = textInput.value || '預覽文字 ABC 123';
+        const size = parseInt(fontSize.value);
+        const color = fontColor.value;
+        const isTransparent = transparentBg.checked;
+        const padding = 40;
+        const lineHeight = size * 1.4;
+        
+        // 等待字型載入完成
+        await document.fonts.ready;
+        await document.fonts.load(`${size}px "${font.name}"`);
+        
+        // Split text into lines
+        const lines = text.split('\n');
+        
+        // Create canvas
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const pixelRatio = 2;
+        
+        // Set font to measure
+        ctx.font = `${size}px "${font.name}", ${font.category}`;
+        
+        // Calculate max width
+        let maxWidth = 0;
+        lines.forEach(line => {
+          const metrics = ctx.measureText(line || ' ');
+          if (metrics.width > maxWidth) maxWidth = metrics.width;
+        });
+        
+        const canvasWidth = Math.ceil(maxWidth + padding * 2);
+        const canvasHeight = Math.ceil(lines.length * lineHeight + padding * 2);
+        
+        canvas.width = canvasWidth * pixelRatio;
+        canvas.height = canvasHeight * pixelRatio;
+        ctx.scale(pixelRatio, pixelRatio);
+        
+        // Background
+        if (!isTransparent) {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+        }
+        
+        // Text - 重設 font（resize canvas 會 reset context）
+        ctx.font = `${size}px "${font.name}", ${font.category}`;
+        ctx.fillStyle = color;
+        ctx.textBaseline = 'top';
+        
+        lines.forEach((line, i) => {
+          ctx.fillText(line, padding, padding + i * lineHeight);
+        });
+        
+        // Convert to blob and copy
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+        
+        await navigator.clipboard.write([
+          new ClipboardItem({ 'image/png': blob })
+        ]);
+
+        // Show success state
+        btn.classList.add('copied');
+        btn.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          Copied!
+        `;
+
+        showToast();
+
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          btn.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            Copy PNG
+          `;
+        }, 2000);
+
+      } catch (err) {
+        console.error('Copy failed:', err);
+        alert('複製失敗，請確認瀏覽器支援 Clipboard API');
+      }
+    }
+
+    // Show toast
+    function showToast() {
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2000);
+    }
+
+    // Event listeners
+    textInput.addEventListener('input', updatePreviews);
+    fontSize.addEventListener('input', updatePreviews);
+    fontColor.addEventListener('input', updatePreviews);
+    transparentBg.addEventListener('change', updatePreviews);
+
+    cardsContainer.addEventListener('click', (e) => {
+      const btn = e.target.closest('.copy-btn');
+      if (btn) {
+        const index = btn.dataset.index;
+        copyToClipboard(index);
+      }
+    });
+
+    // Initialize
+    generateCards();
+  </script>
+</body>
+</html>
