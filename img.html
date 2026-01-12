@@ -148,15 +148,85 @@
       margin-left: auto;
     }
 
-    .toolbar-btn.copy-main {
-      padding: 10px 20px;
-      font-size: 14px;
+    /* Copy Main Button in Sidebar */
+    .copy-main-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 20px;
+      background: var(--accent);
+      border: none;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 15px;
       font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
     }
 
-    .toolbar-btn.copy-main svg {
-      width: 18px;
-      height: 18px;
+    .copy-main-btn:hover {
+      background: #2563eb;
+    }
+
+    .copy-main-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* Zoom Controls */
+    .zoom-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .zoom-btn {
+      padding: 4px 8px;
+      background: var(--surface-hover);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text-muted);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .zoom-btn:hover {
+      background: var(--border);
+      color: var(--text);
+    }
+
+    .zoom-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    .zoom-controls input[type="range"] {
+      width: 80px;
+      height: 4px;
+      -webkit-appearance: none;
+      background: var(--border);
+      border-radius: 2px;
+      cursor: pointer;
+    }
+
+    .zoom-controls input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px;
+      height: 12px;
+      background: var(--accent);
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .zoom-value {
+      font-size: 12px;
+      font-family: monospace;
+      color: var(--text-muted);
+      min-width: 40px;
     }
 
     /* Canvas Container */
@@ -494,15 +564,17 @@
           刪除
         </button>
 
-        <span class="toolbar-info" id="toolbarInfo">點擊上傳或貼上圖片開始</span>
+        <div class="toolbar-divider"></div>
 
-        <button class="toolbar-btn primary copy-main" id="copyBtn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-          </svg>
-          複製圖片
-        </button>
+        <div class="zoom-controls">
+          <button class="zoom-btn" data-zoom="fit" title="適應視窗">Fit</button>
+          <button class="zoom-btn" data-zoom="50" title="50%">50%</button>
+          <button class="zoom-btn" data-zoom="100" title="100%">100%</button>
+          <input type="range" id="zoomSlider" min="10" max="200" value="100">
+          <span class="zoom-value" id="zoomValue">100%</span>
+        </div>
+
+        <span class="toolbar-info" id="toolbarInfo">點擊上傳或貼上圖片開始</span>
       </div>
 
       <!-- Canvas Container -->
@@ -533,6 +605,17 @@
 
     <!-- Sidebar -->
     <div class="sidebar">
+      <!-- Copy Button -->
+      <div class="sidebar-section">
+        <button class="copy-main-btn" id="copyBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+          複製圖片
+        </button>
+      </div>
+
       <!-- Canvas Settings -->
       <div class="sidebar-section">
         <div class="sidebar-title">畫布設定</div>
@@ -628,7 +711,9 @@
       selectedId: null, // 'image' or text id
       canvasBg: null,
       canvasPadding: 20,
-      nextTextId: 1
+      nextTextId: 1,
+      zoom: 100, // 縮放百分比
+      zoomMode: 'fit' // 'fit' | 'manual'
     };
 
     // ==================== DOM Elements ====================
@@ -647,6 +732,11 @@
     const deleteBtn = document.getElementById('deleteBtn');
     const copyBtn = document.getElementById('copyBtn');
     const toolbarInfo = document.getElementById('toolbarInfo');
+
+    // Zoom controls
+    const zoomSlider = document.getElementById('zoomSlider');
+    const zoomValue = document.getElementById('zoomValue');
+    const zoomBtns = document.querySelectorAll('.zoom-btn');
 
     // Sidebar
     const canvasBgColor = document.getElementById('canvasBgColor');
@@ -734,6 +824,76 @@
       propColor.addEventListener('input', updateSelectedText);
       propBgColor.addEventListener('input', updateSelectedText);
       propBgTransparent.addEventListener('change', updateSelectedText);
+
+      // Zoom controls
+      zoomSlider.addEventListener('input', () => {
+        setZoom(parseInt(zoomSlider.value), 'manual');
+      });
+
+      zoomBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const z = btn.dataset.zoom;
+          if (z === 'fit') {
+            fitToView();
+          } else {
+            setZoom(parseInt(z), 'manual');
+          }
+        });
+      });
+
+      // Window resize for fit mode
+      window.addEventListener('resize', () => {
+        if (state.zoomMode === 'fit') fitToView();
+      });
+    }
+
+    // ==================== Zoom ====================
+    function setZoom(percent, mode = 'manual') {
+      state.zoom = Math.max(10, Math.min(200, percent));
+      state.zoomMode = mode;
+
+      zoomSlider.value = state.zoom;
+      zoomValue.textContent = state.zoom + '%';
+
+      // Update button states
+      zoomBtns.forEach(btn => {
+        const z = btn.dataset.zoom;
+        if (z === 'fit') {
+          btn.classList.toggle('active', mode === 'fit');
+        } else {
+          btn.classList.toggle('active', mode === 'manual' && parseInt(z) === state.zoom);
+        }
+      });
+
+      applyZoom();
+    }
+
+    function applyZoom() {
+      const scale = state.zoom / 100;
+      // 用 width/height 控制實際佔位，避免多餘捲軸
+      canvasWrapper.style.width = (canvas.width * scale) + 'px';
+      canvasWrapper.style.height = (canvas.height * scale) + 'px';
+      // Canvas 本身用 transform 縮放
+      canvas.style.transform = `scale(${scale})`;
+      canvas.style.transformOrigin = 'top left';
+    }
+
+    function fitToView() {
+      if (!state.image) {
+        setZoom(100, 'fit');
+        return;
+      }
+
+      const containerRect = canvasContainer.getBoundingClientRect();
+      const padding = 64; // 留一些邊距
+      const availableWidth = containerRect.width - padding;
+      const availableHeight = containerRect.height - padding;
+
+      const scaleX = availableWidth / canvas.width;
+      const scaleY = availableHeight / canvas.height;
+      const scale = Math.min(scaleX, scaleY, 1); // 最大 100%
+
+      setZoom(Math.round(scale * 100), 'fit');
     }
 
     // ==================== File Handling ====================
@@ -790,6 +950,8 @@
           copyBtn.disabled = false;
           toolbarInfo.textContent = `${img.width} x ${img.height}`;
           render();
+          // 載入後自動 fit
+          setTimeout(fitToView, 50);
         };
         img.src = e.target.result;
       };
@@ -797,10 +959,16 @@
     }
 
     // ==================== Canvas Interaction ====================
-    function handleMouseDown(e) {
+    function getCanvasCoords(e) {
       const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+      const scale = state.zoom / 100;
+      const x = (e.clientX - rect.left) / scale;
+      const y = (e.clientY - rect.top) / scale;
+      return { x, y };
+    }
+
+    function handleMouseDown(e) {
+      const { x, y } = getCanvasCoords(e);
 
       // Hit test (texts first, then image)
       const hit = hitTest(x, y);
@@ -822,9 +990,7 @@
     }
 
     function handleMouseMove(e) {
-      const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+      const { x, y } = getCanvasCoords(e);
 
       if (isDragging && dragTarget) {
         if (dragTarget.id === 'image' && state.image) {
@@ -853,9 +1019,7 @@
     }
 
     function handleDoubleClick(e) {
-      const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+      const { x, y } = getCanvasCoords(e);
 
       const hit = hitTest(x, y);
       if (hit && hit.id !== 'image') {
