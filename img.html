@@ -892,10 +892,19 @@
 
     function getTextBounds(textItem) {
       ctx.font = `${textItem.fontSize}px "${textItem.fontFamily}"`;
-      const metrics = ctx.measureText(textItem.text || '文字');
-      const width = metrics.width + 16;
-      const height = textItem.fontSize * 1.4;
-      return { x: textItem.x, y: textItem.y, width, height };
+      const lines = (textItem.text || '文字').split('\n');
+      const lineHeight = textItem.fontSize * 1.4;
+
+      // 找出最寬的那行
+      let maxWidth = 0;
+      lines.forEach(line => {
+        const w = ctx.measureText(line || ' ').width;
+        if (w > maxWidth) maxWidth = w;
+      });
+
+      const width = maxWidth + 16;
+      const height = lineHeight * lines.length;
+      return { x: textItem.x, y: textItem.y, width, height, lines, lineHeight };
     }
 
     // ==================== Text Management ====================
@@ -1103,10 +1112,13 @@
           ctx.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
         }
 
-        // Text
+        // Text - 逐行繪製
         ctx.fillStyle = t.color;
         ctx.textBaseline = 'middle';
-        ctx.fillText(t.text || '', t.x + 8, t.y + bounds.height / 2);
+        bounds.lines.forEach((line, i) => {
+          const lineY = t.y + bounds.lineHeight * i + bounds.lineHeight / 2;
+          ctx.fillText(line, t.x + 8, lineY);
+        });
 
         // Selection border
         if (state.selectedId === t.id) {
