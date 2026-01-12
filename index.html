@@ -878,14 +878,16 @@
           // 判斷是否為塊級元素
           const isBlock = node.tagName === 'DIV' || node.tagName === 'P';
 
+          // 塊級元素開始前加換行（如果前面有內容且不是換行）
+          // 這是關鍵修復：contenteditable 產生的 HTML 是 "文字<div>第二行</div>"
+          // 需要在進入 <div> 之前就加換行
+          if (isBlock && segments.length > 0 && segments[segments.length - 1].text !== '\n') {
+            segments.push({ text: '\n', size, color, bg, bold });
+          }
+
           // Traverse children
           for (const child of node.childNodes) {
             traverse(child, { size, color, bg, bold });
-          }
-
-          // 塊級元素結束後加換行（除非已經是換行）
-          if (isBlock && segments.length > 0 && segments[segments.length - 1].text !== '\n') {
-            segments.push({ text: '\n', size, color, bg, bold });
           }
         }
       }
