@@ -10,6 +10,10 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Huninn&family=Iansui&family=LXGW+WenKai+TC&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;500;700&family=Zen+Maru+Gothic:wght@400;500&family=Dela+Gothic+One&family=Kosugi+Maru&family=Yusei+Magic&family=DotGothic16&family=Klee+One&display=swap" rel="stylesheet">
 
   <style>
+    /* emfont 字體 */
+    @import url("https://font.emtech.cc/css/ChillRoundGothic");
+    @import url("https://font.emtech.cc/css/BoutiqueBitmap7x7");
+    @import url("https://font.emtech.cc/css/MiSans");
     :root {
       --bg: #0a0a0a;
       --surface: #141414;
@@ -538,7 +542,7 @@
       <div class="toolbar">
         <div class="toolbar-group">
           <span class="toolbar-label">大小</span>
-          <input type="range" id="selSize" min="12" max="120" value="48">
+          <input type="range" id="selSize" min="12" max="200" value="48">
           <span class="toolbar-value" id="selSizeValue">48px</span>
         </div>
 
@@ -634,6 +638,10 @@
       { name: 'Dela Gothic One', displayName: '超粗黑體' },
       { name: 'Yusei Magic', displayName: '油性魔術' },
       { name: 'DotGothic16', displayName: '點陣黑體 16' },
+      // emfont 字體
+      { name: 'ChillRoundGothic', displayName: '俐方體圓體' },
+      { name: 'BoutiqueBitmap7x7', displayName: '點陣 7x7' },
+      { name: 'MiSans', displayName: '小米字體' },
     ];
 
     const editor = document.getElementById('editor');

@@ -4,12 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Img+Text - 圖片加字</title>
-  
-  <!-- Google Fonts - 確定能用的中文字型 -->
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Huninn&family=Iansui&family=LXGW+WenKai+TC&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;500;700&family=Klee+One&family=Zen+Maru+Gothic:wght@400;500&family=Dela+Gothic+One&family=Kosugi+Maru&family=Yusei+Magic&family=DotGothic16&display=swap" rel="stylesheet">
-  
+
   <style>
     :root {
       --bg: #0a0a0a;
@@ -20,14 +19,20 @@
       --text-muted: #737373;
       --accent: #3b82f6;
       --accent-dim: rgba(59, 130, 246, 0.1);
+      --danger: #ef4444;
       --radius: 8px;
     }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    :root.light {
+      --bg: #ffffff;
+      --surface: #f5f5f5;
+      --surface-hover: #eeeeee;
+      --border: #e5e5e5;
+      --text: #171717;
+      --text-muted: #737373;
     }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: 'DM Sans', -apple-system, sans-serif;
@@ -37,138 +42,272 @@
       line-height: 1.5;
     }
 
-    .container {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 48px 32px;
+    /* Nav */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 24px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
     }
 
-    .header {
-      margin-bottom: 32px;
+    .nav-links {
+      display: flex;
+      gap: 8px;
     }
 
-    .header h1 {
-      font-size: 28px;
-      font-weight: 600;
-      letter-spacing: -0.5px;
-      margin-bottom: 8px;
-    }
-
-    .header p {
+    .nav a {
+      padding: 8px 16px;
+      border-radius: 6px;
       color: var(--text-muted);
-      font-size: 15px;
-    }
-
-    /* Upload Area */
-    .upload-area {
-      border: 2px dashed var(--border);
-      border-radius: var(--radius);
-      padding: 60px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s;
-      margin-bottom: 28px;
-    }
-
-    .upload-area:hover {
-      border-color: var(--accent);
-      background: var(--accent-dim);
-    }
-
-    .upload-area.has-image {
-      padding: 16px;
-      border-style: solid;
-    }
-
-    .upload-area svg {
-      width: 48px;
-      height: 48px;
-      color: var(--text-muted);
-      margin-bottom: 16px;
-    }
-
-    .upload-area p {
-      color: var(--text-muted);
+      text-decoration: none;
       font-size: 14px;
+      font-weight: 500;
+      transition: all 0.15s;
     }
 
-    .upload-area input {
-      display: none;
+    .nav a:hover { color: var(--text); background: var(--border); }
+    .nav a.active { color: var(--text); background: var(--accent); }
+
+    .theme-toggle {
+      width: 36px;
+      height: 36px;
+      padding: 8px;
+      background: var(--surface-hover);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.15s;
     }
 
-    .uploaded-img {
-      max-width: 100%;
-      max-height: 400px;
-      border-radius: 4px;
+    .theme-toggle:hover { background: var(--border); }
+    .theme-toggle svg { width: 100%; height: 100%; }
+    .theme-toggle .icon-sun { display: none; }
+    :root.light .theme-toggle .icon-moon { display: none; }
+    :root.light .theme-toggle .icon-sun { display: block; }
+
+    /* Main Layout */
+    .main-layout {
+      display: flex;
+      height: calc(100vh - 57px);
     }
 
-    /* Controls */
-    .controls {
+    /* Canvas Area */
+    .canvas-area {
+      flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 16px;
-      margin-bottom: 32px;
+      overflow: hidden;
     }
 
-    .control-row {
+    /* Toolbar */
+    .toolbar {
       display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-      padding: 20px;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
       background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      align-items: center;
+      border-bottom: 1px solid var(--border);
     }
 
-    .control-group {
+    .toolbar-btn {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 6px;
+      padding: 8px 12px;
+      background: var(--surface-hover);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
     }
 
-    .control-group label {
+    .toolbar-btn:hover { background: var(--border); }
+    .toolbar-btn.primary { background: var(--accent); border-color: var(--accent); }
+    .toolbar-btn.primary:hover { background: #2563eb; }
+    .toolbar-btn.danger { color: var(--danger); }
+    .toolbar-btn.danger:hover { background: rgba(239, 68, 68, 0.1); }
+    .toolbar-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .toolbar-btn svg { width: 16px; height: 16px; }
+
+    .toolbar-divider {
+      width: 1px;
+      height: 24px;
+      background: var(--border);
+      margin: 0 4px;
+    }
+
+    .toolbar-info {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-left: auto;
+    }
+
+    /* Canvas Container */
+    .canvas-container {
+      flex: 1;
+      overflow: auto;
+      background: #1a1a1a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+    }
+
+    .canvas-wrapper {
+      position: relative;
+      background: #f5f5f5;
+      background-image:
+        linear-gradient(45deg, #e0e0e0 25%, transparent 25%),
+        linear-gradient(-45deg, #e0e0e0 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #e0e0e0 75%),
+        linear-gradient(-45deg, transparent 75%, #e0e0e0 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+      border-radius: var(--radius);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+    }
+
+    #mainCanvas {
+      display: block;
+      cursor: default;
+    }
+
+    .canvas-wrapper.dragging { cursor: grabbing; }
+
+    /* Drop Zone Overlay */
+    .drop-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(59, 130, 246, 0.1);
+      border: 2px dashed var(--accent);
+      border-radius: var(--radius);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+      font-size: 16px;
+      font-weight: 500;
+      pointer-events: none;
+    }
+
+    .drop-overlay.show { display: flex; }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      color: var(--text-muted);
+      padding: 60px;
+    }
+
+    .empty-state svg {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    .empty-state p { font-size: 14px; margin-bottom: 16px; }
+
+    .empty-state .upload-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      background: var(--accent);
+      border: none;
+      border-radius: var(--radius);
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .empty-state .upload-btn:hover { background: #2563eb; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      overflow-y: auto;
+    }
+
+    .sidebar-section {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+
+    .prop-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .prop-row:last-child { margin-bottom: 0; }
+
+    .prop-label {
       font-size: 13px;
       color: var(--text-muted);
-      white-space: nowrap;
+      min-width: 50px;
     }
 
-    .control-group input[type="text"] {
-      padding: 8px 12px;
+    .prop-row input[type="text"],
+    .prop-row textarea {
+      flex: 1;
+      padding: 8px 10px;
       background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 4px;
       color: var(--text);
-      font-size: 14px;
-      min-width: 200px;
-      flex: 1;
+      font-size: 13px;
+      font-family: inherit;
     }
 
-    .control-group input[type="text"]:focus {
+    .prop-row textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    .prop-row input:focus,
+    .prop-row textarea:focus {
       outline: none;
       border-color: var(--accent);
     }
 
-    .control-group select {
-      padding: 8px 12px;
+    .prop-row select {
+      flex: 1;
+      padding: 8px 10px;
       background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 4px;
       color: var(--text);
-      font-size: 14px;
-      cursor: pointer;
+      font-size: 13px;
     }
 
-    .control-group input[type="range"] {
-      width: 100px;
+    .prop-row input[type="range"] {
+      flex: 1;
       height: 4px;
       -webkit-appearance: none;
       background: var(--border);
       border-radius: 2px;
-      cursor: pointer;
     }
 
-    .control-group input[type="range"]::-webkit-slider-thumb {
+    .prop-row input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
       width: 14px;
       height: 14px;
@@ -177,7 +316,15 @@
       cursor: pointer;
     }
 
-    .control-group input[type="color"] {
+    .prop-value {
+      font-size: 12px;
+      color: var(--text);
+      min-width: 40px;
+      text-align: right;
+      font-family: monospace;
+    }
+
+    .prop-row input[type="color"] {
       width: 32px;
       height: 32px;
       border: none;
@@ -186,126 +333,72 @@
       background: transparent;
     }
 
-    .control-group input[type="color"]::-webkit-color-swatch-wrapper {
-      padding: 0;
-    }
-
-    .control-group input[type="color"]::-webkit-color-swatch {
+    .prop-row input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+    .prop-row input[type="color"]::-webkit-color-swatch {
       border: 2px solid var(--border);
       border-radius: 4px;
     }
 
-    .value {
-      font-size: 12px;
-      color: var(--text);
-      min-width: 35px;
-      font-family: monospace;
-    }
-
-    .section-label {
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      padding-right: 8px;
-      border-right: 2px solid var(--accent);
-      margin-right: 8px;
-    }
-
-    .checkbox-label {
+    .checkbox-row {
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
       font-size: 13px;
       color: var(--text-muted);
       cursor: pointer;
     }
 
-    .checkbox-label input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
-      cursor: pointer;
-    }
+    .checkbox-row input { cursor: pointer; }
 
-    /* Preview */
-    .preview-section {
-      margin-bottom: 32px;
-    }
-
-    .preview-label {
-      font-size: 13px;
-      color: var(--text-muted);
-      margin-bottom: 12px;
-    }
-
-    .preview-container {
-      display: inline-block;
-      background: #f5f5f5;
-      background-image: 
-        linear-gradient(45deg, #e0e0e0 25%, transparent 25%),
-        linear-gradient(-45deg, #e0e0e0 25%, transparent 25%),
-        linear-gradient(45deg, transparent 75%, #e0e0e0 75%),
-        linear-gradient(-45deg, transparent 75%, #e0e0e0 75%);
-      background-size: 20px 20px;
-      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-      border-radius: var(--radius);
-      padding: 24px;
-    }
-
-    #previewCanvas {
-      display: block;
-      max-width: 100%;
-      border-radius: 4px;
-    }
-
-    /* Buttons */
-    .actions {
+    /* Text Items List */
+    .text-list {
       display: flex;
-      gap: 12px;
+      flex-direction: column;
+      gap: 6px;
     }
 
-    .btn {
+    .text-item {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 12px 20px;
-      border: none;
-      border-radius: var(--radius);
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .btn-primary {
-      background: var(--accent);
-      color: white;
-    }
-
-    .btn-primary:hover {
-      background: #2563eb;
-    }
-
-    .btn-primary:disabled {
-      background: var(--border);
-      color: var(--text-muted);
-      cursor: not-allowed;
-    }
-
-    .btn-secondary {
-      background: var(--surface);
-      color: var(--text);
+      padding: 8px 10px;
+      background: var(--bg);
       border: 1px solid var(--border);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
     }
 
-    .btn-secondary:hover {
-      background: var(--surface-hover);
+    .text-item:hover { border-color: var(--text-muted); }
+    .text-item.selected { border-color: var(--accent); background: var(--accent-dim); }
+
+    .text-item-preview {
+      flex: 1;
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .btn svg {
-      width: 18px;
-      height: 18px;
+    .text-item-delete {
+      padding: 4px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .text-item:hover .text-item-delete { opacity: 1; }
+    .text-item-delete:hover { color: var(--danger); }
+
+    /* No selection state */
+    .no-selection {
+      color: var(--text-muted);
+      font-size: 13px;
+      text-align: center;
+      padding: 20px;
     }
 
     /* Toast */
@@ -330,404 +423,741 @@
       opacity: 1;
     }
 
-    /* Nav */
-    .nav {
-      display: flex;
-      gap: 8px;
-      padding: 16px 24px;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-    }
+    /* Hidden file input */
+    #fileInput { display: none; }
 
-    .nav a {
-      padding: 8px 16px;
-      border-radius: 6px;
-      color: var(--text-muted);
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: 500;
-      transition: all 0.15s;
-    }
-
-    .nav a:hover {
-      color: var(--text);
-      background: var(--border);
-    }
-
-    .nav a.active {
-      color: var(--text);
-      background: var(--accent);
-    }
-
-    @media (max-width: 600px) {
-      .container {
-        padding: 24px 16px;
-      }
-
-      .control-row {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .control-group {
-        width: 100%;
-      }
-
-      .control-group input[type="text"] {
-        width: 100%;
-      }
-
-      .control-row .btn {
-        width: 100%;
-        justify-content: center;
-      }
+    @media (max-width: 768px) {
+      .main-layout { flex-direction: column; }
+      .sidebar { width: 100%; border-left: none; border-top: 1px solid var(--border); }
     }
   </style>
 </head>
 <body>
   <nav class="nav">
-    <a href="index.html">Text2Img</a>
-    <a href="img.html" class="active">Img+Text</a>
-  </nav>
-  <div class="container">
-    <header class="header">
-      <h1>Img + Text</h1>
-      <p>貼圖 → 底下加字 → 一鍵複製</p>
-    </header>
-
-    <div class="upload-area" id="uploadArea">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-        <circle cx="8.5" cy="8.5" r="1.5"></circle>
-        <polyline points="21 15 16 10 5 21"></polyline>
-      </svg>
-      <p>點擊上傳、拖放、或直接 Ctrl+V 貼上</p>
-      <input type="file" id="imageInput" accept="image/*">
+    <div class="nav-links">
+      <a href="index.html">Text2Img</a>
+      <a href="img.html" class="active">Img+Text</a>
     </div>
+    <button class="theme-toggle" id="themeToggle" title="切換主題">
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5"/>
+        <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+    </button>
+  </nav>
 
-    <div class="controls">
-      <!-- 文字設定 -->
-      <div class="control-row">
-        <div class="control-group" style="flex: 1;">
-          <label>文字</label>
-          <input type="text" id="textInput" placeholder="輸入底部文字..." style="flex: 1;">
-        </div>
-        <button class="btn btn-primary" id="copyBtn" disabled>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+  <div class="main-layout">
+    <div class="canvas-area">
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <button class="toolbar-btn" id="uploadBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          上傳圖片
+        </button>
+
+        <button class="toolbar-btn" id="addTextBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          新增文字
+        </button>
+
+        <div class="toolbar-divider"></div>
+
+        <button class="toolbar-btn danger" id="deleteBtn" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+          </svg>
+          刪除
+        </button>
+
+        <div class="toolbar-divider"></div>
+
+        <button class="toolbar-btn primary" id="copyBtn" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
           </svg>
           複製圖片
         </button>
+
+        <span class="toolbar-info" id="toolbarInfo">點擊上傳或貼上圖片開始</span>
       </div>
 
-      <!-- 文字樣式 -->
-      <div class="control-row">
-        <span class="section-label">文字</span>
-        
-        <div class="control-group">
-          <label>字型</label>
-          <select id="fontSelect">
-            <optgroup label="台灣專用">
-              <option value="Huninn">jf open 粉圓</option>
-              <option value="Iansui">芫荽</option>
-            </optgroup>
-            <optgroup label="楷書">
-              <option value="LXGW WenKai TC">霞鶩文楷 TC</option>
-              <option value="Klee One">Klee One</option>
-            </optgroup>
-            <optgroup label="黑體">
-              <option value="Noto Sans TC">思源黑體</option>
-              <option value="Zen Maru Gothic">禪丸黑體（圓）</option>
-              <option value="Kosugi Maru">小杉圓體</option>
-            </optgroup>
-            <optgroup label="宋/明體">
-              <option value="Noto Serif TC">思源宋體</option>
-            </optgroup>
-            <optgroup label="特殊風格">
-              <option value="Dela Gothic One">超粗黑體</option>
-              <option value="Yusei Magic">油性魔術</option>
-              <option value="DotGothic16">點陣黑體 16</option>
-            </optgroup>
-          </select>
+      <!-- Canvas Container -->
+      <div class="canvas-container" id="canvasContainer">
+        <div class="empty-state" id="emptyState">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+          <p>點擊上傳、拖放、或 Ctrl+V 貼上圖片</p>
+          <button class="upload-btn" id="emptyUploadBtn">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            選擇圖片
+          </button>
         </div>
-        
-        <div class="control-group">
-          <label>大小</label>
-          <input type="range" id="fontSize" min="12" max="72" value="24">
-          <span class="value" id="fontSizeValue">24px</span>
-        </div>
-        
-        <div class="control-group">
-          <label>顏色</label>
-          <input type="color" id="textColor" value="#000000">
-        </div>
-        
-        <div class="control-group">
-          <label>底色</label>
-          <input type="color" id="textBgColor" value="#ffffff">
-          <label class="checkbox-label">
-            <input type="checkbox" id="textBgTransparent">
-            透明
-          </label>
-        </div>
-      </div>
 
-      <!-- 圖片設定 -->
-      <div class="control-row">
-        <span class="section-label">圖片</span>
-        
-        <div class="control-group">
-          <label>底色</label>
-          <input type="color" id="imgBgColor" value="#ffffff">
-          <label class="checkbox-label">
-            <input type="checkbox" id="imgBgTransparent" checked>
-            透明
-          </label>
-        </div>
-        
-        <div class="control-group">
-          <label>邊距</label>
-          <input type="range" id="imgPadding" min="0" max="48" value="16">
-          <span class="value" id="imgPaddingValue">16px</span>
+        <div class="canvas-wrapper" id="canvasWrapper" style="display: none;">
+          <canvas id="mainCanvas"></canvas>
+          <div class="drop-overlay" id="dropOverlay">放開以上傳圖片</div>
         </div>
       </div>
     </div>
 
-    <div class="preview-section">
-      <div class="preview-label">預覽</div>
-      <div class="preview-container">
-        <canvas id="previewCanvas" width="300" height="200"></canvas>
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <!-- Canvas Settings -->
+      <div class="sidebar-section">
+        <div class="sidebar-title">畫布設定</div>
+        <div class="prop-row">
+          <span class="prop-label">背景</span>
+          <input type="color" id="canvasBgColor" value="#ffffff">
+          <label class="checkbox-row">
+            <input type="checkbox" id="canvasBgTransparent" checked>
+            透明
+          </label>
+        </div>
+        <div class="prop-row">
+          <span class="prop-label">邊距</span>
+          <input type="range" id="canvasPadding" min="0" max="100" value="20">
+          <span class="prop-value" id="canvasPaddingValue">20px</span>
+        </div>
       </div>
-    </div>
 
-    <div class="actions">
-      <button class="btn btn-secondary" id="clearBtn">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
-        清除重來
-      </button>
+      <!-- Text List -->
+      <div class="sidebar-section">
+        <div class="sidebar-title">文字圖層</div>
+        <div class="text-list" id="textList">
+          <div class="no-selection">尚無文字，點擊「新增文字」</div>
+        </div>
+      </div>
+
+      <!-- Selected Item Properties -->
+      <div class="sidebar-section" id="propSection" style="display: none;">
+        <div class="sidebar-title" id="propTitle">屬性</div>
+
+        <!-- Text Properties -->
+        <div id="textProps">
+          <div class="prop-row">
+            <span class="prop-label">內容</span>
+            <textarea id="propText" placeholder="輸入文字..."></textarea>
+          </div>
+          <div class="prop-row">
+            <span class="prop-label">字型</span>
+            <select id="propFont">
+              <optgroup label="台灣專用">
+                <option value="Huninn">jf open 粉圓</option>
+                <option value="Iansui">芫荽</option>
+              </optgroup>
+              <optgroup label="楷書">
+                <option value="LXGW WenKai TC">霞鶩文楷 TC</option>
+                <option value="Klee One">Klee One</option>
+              </optgroup>
+              <optgroup label="黑體">
+                <option value="Noto Sans TC" selected>思源黑體</option>
+                <option value="Zen Maru Gothic">禪丸黑體（圓）</option>
+                <option value="Kosugi Maru">小杉圓體</option>
+              </optgroup>
+              <optgroup label="宋/明體">
+                <option value="Noto Serif TC">思源宋體</option>
+              </optgroup>
+              <optgroup label="特殊風格">
+                <option value="Dela Gothic One">超粗黑體</option>
+                <option value="Yusei Magic">油性魔術</option>
+                <option value="DotGothic16">點陣黑體 16</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="prop-row">
+            <span class="prop-label">大小</span>
+            <input type="range" id="propSize" min="12" max="200" value="32">
+            <span class="prop-value" id="propSizeValue">32px</span>
+          </div>
+          <div class="prop-row">
+            <span class="prop-label">顏色</span>
+            <input type="color" id="propColor" value="#000000">
+          </div>
+          <div class="prop-row">
+            <span class="prop-label">底色</span>
+            <input type="color" id="propBgColor" value="#ffff00">
+            <label class="checkbox-row">
+              <input type="checkbox" id="propBgTransparent" checked>
+              透明
+            </label>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
+  <input type="file" id="fileInput" accept="image/*">
   <div class="toast" id="toast">已複製到剪貼簿</div>
 
   <script>
-    // Elements
-    const uploadArea = document.getElementById('uploadArea');
-    const imageInput = document.getElementById('imageInput');
-    const textInput = document.getElementById('textInput');
-    const fontSelect = document.getElementById('fontSelect');
-    const fontSize = document.getElementById('fontSize');
-    const fontSizeValue = document.getElementById('fontSizeValue');
-    const textColor = document.getElementById('textColor');
-    const textBgColor = document.getElementById('textBgColor');
-    const textBgTransparent = document.getElementById('textBgTransparent');
-    const imgBgColor = document.getElementById('imgBgColor');
-    const imgBgTransparent = document.getElementById('imgBgTransparent');
-    const imgPadding = document.getElementById('imgPadding');
-    const imgPaddingValue = document.getElementById('imgPaddingValue');
-    const previewCanvas = document.getElementById('previewCanvas');
-    const copyBtn = document.getElementById('copyBtn');
-    const clearBtn = document.getElementById('clearBtn');
-    const toast = document.getElementById('toast');
-    
-    const ctx = previewCanvas.getContext('2d');
-    let uploadedImage = null;
+    // ==================== State ====================
+    const state = {
+      image: null, // { img: Image, x, y, width, height }
+      textItems: [], // [{ id, x, y, text, fontSize, fontFamily, color, bgColor }]
+      selectedId: null, // 'image' or text id
+      canvasBg: null,
+      canvasPadding: 20,
+      nextTextId: 1
+    };
 
-    // Upload handlers
-    uploadArea.addEventListener('click', () => imageInput.click());
-    
-    uploadArea.addEventListener('dragover', (e) => {
+    // ==================== DOM Elements ====================
+    const canvas = document.getElementById('mainCanvas');
+    const ctx = canvas.getContext('2d');
+    const canvasWrapper = document.getElementById('canvasWrapper');
+    const canvasContainer = document.getElementById('canvasContainer');
+    const emptyState = document.getElementById('emptyState');
+    const fileInput = document.getElementById('fileInput');
+    const toast = document.getElementById('toast');
+
+    // Toolbar
+    const uploadBtn = document.getElementById('uploadBtn');
+    const emptyUploadBtn = document.getElementById('emptyUploadBtn');
+    const addTextBtn = document.getElementById('addTextBtn');
+    const deleteBtn = document.getElementById('deleteBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const toolbarInfo = document.getElementById('toolbarInfo');
+
+    // Sidebar
+    const canvasBgColor = document.getElementById('canvasBgColor');
+    const canvasBgTransparent = document.getElementById('canvasBgTransparent');
+    const canvasPadding = document.getElementById('canvasPadding');
+    const canvasPaddingValue = document.getElementById('canvasPaddingValue');
+    const textList = document.getElementById('textList');
+    const propSection = document.getElementById('propSection');
+    const propTitle = document.getElementById('propTitle');
+    const textProps = document.getElementById('textProps');
+
+    // Text properties
+    const propText = document.getElementById('propText');
+    const propFont = document.getElementById('propFont');
+    const propSize = document.getElementById('propSize');
+    const propSizeValue = document.getElementById('propSizeValue');
+    const propColor = document.getElementById('propColor');
+    const propBgColor = document.getElementById('propBgColor');
+    const propBgTransparent = document.getElementById('propBgTransparent');
+
+    // ==================== Drag State ====================
+    let isDragging = false;
+    let dragTarget = null;
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
+
+    // ==================== Initialization ====================
+    function init() {
+      setupEventListeners();
+      render();
+    }
+
+    function setupEventListeners() {
+      // File upload
+      uploadBtn.addEventListener('click', () => fileInput.click());
+      emptyUploadBtn.addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', handleFileSelect);
+
+      // Paste
+      document.addEventListener('paste', handlePaste);
+
+      // Drag & drop
+      canvasContainer.addEventListener('dragover', handleDragOver);
+      canvasContainer.addEventListener('dragleave', handleDragLeave);
+      canvasContainer.addEventListener('drop', handleDrop);
+
+      // Canvas interaction
+      canvas.addEventListener('mousedown', handleMouseDown);
+      canvas.addEventListener('mousemove', handleMouseMove);
+      canvas.addEventListener('mouseup', handleMouseUp);
+      canvas.addEventListener('mouseleave', handleMouseUp);
+      canvas.addEventListener('dblclick', handleDoubleClick);
+
+      // Toolbar
+      addTextBtn.addEventListener('click', addNewText);
+      deleteBtn.addEventListener('click', deleteSelected);
+      copyBtn.addEventListener('click', copyToClipboard);
+
+      // Canvas settings
+      canvasBgColor.addEventListener('input', () => {
+        if (!canvasBgTransparent.checked) {
+          state.canvasBg = canvasBgColor.value;
+          render();
+        }
+      });
+      canvasBgTransparent.addEventListener('change', () => {
+        state.canvasBg = canvasBgTransparent.checked ? null : canvasBgColor.value;
+        render();
+      });
+      canvasPadding.addEventListener('input', () => {
+        state.canvasPadding = parseInt(canvasPadding.value);
+        canvasPaddingValue.textContent = canvasPadding.value + 'px';
+        render();
+      });
+
+      // Text properties
+      propText.addEventListener('input', updateSelectedText);
+      propFont.addEventListener('change', updateSelectedText);
+      propSize.addEventListener('input', () => {
+        propSizeValue.textContent = propSize.value + 'px';
+        updateSelectedText();
+      });
+      propColor.addEventListener('input', updateSelectedText);
+      propBgColor.addEventListener('input', updateSelectedText);
+      propBgTransparent.addEventListener('change', updateSelectedText);
+    }
+
+    // ==================== File Handling ====================
+    function handleFileSelect(e) {
+      const file = e.target.files[0];
+      if (file) loadImage(file);
+      fileInput.value = '';
+    }
+
+    function handlePaste(e) {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (const item of items) {
+        if (item.type.startsWith('image/')) {
+          const file = item.getAsFile();
+          if (file) loadImage(file);
+          break;
+        }
+      }
+    }
+
+    function handleDragOver(e) {
       e.preventDefault();
-      uploadArea.style.borderColor = 'var(--accent)';
-    });
-    
-    uploadArea.addEventListener('dragleave', () => {
-      uploadArea.style.borderColor = '';
-    });
-    
-    uploadArea.addEventListener('drop', (e) => {
+      document.getElementById('dropOverlay').classList.add('show');
+    }
+
+    function handleDragLeave(e) {
+      document.getElementById('dropOverlay').classList.remove('show');
+    }
+
+    function handleDrop(e) {
       e.preventDefault();
-      uploadArea.style.borderColor = '';
+      document.getElementById('dropOverlay').classList.remove('show');
       const file = e.dataTransfer.files[0];
       if (file && file.type.startsWith('image/')) {
         loadImage(file);
       }
-    });
-    
-    imageInput.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) loadImage(file);
-    });
-
-    // 貼上圖片 (Ctrl+V / Cmd+V)
-    document.addEventListener('paste', (e) => {
-      const items = e.clipboardData?.items;
-      if (!items) return;
-      
-      for (const item of items) {
-        if (item.type.startsWith('image/')) {
-          const file = item.getAsFile();
-          if (file) {
-            loadImage(file);
-            break;
-          }
-        }
-      }
-    });
+    }
 
     function loadImage(file) {
       const reader = new FileReader();
       reader.onload = (e) => {
         const img = new Image();
         img.onload = () => {
-          uploadedImage = img;
-          uploadArea.classList.add('has-image');
-          uploadArea.innerHTML = `<img src="${e.target.result}" class="uploaded-img">`;
+          state.image = {
+            img,
+            x: state.canvasPadding,
+            y: state.canvasPadding,
+            width: img.width,
+            height: img.height
+          };
+          emptyState.style.display = 'none';
+          canvasWrapper.style.display = 'block';
           copyBtn.disabled = false;
-          renderPreview();
+          toolbarInfo.textContent = `${img.width} x ${img.height}`;
+          render();
         };
         img.src = e.target.result;
       };
       reader.readAsDataURL(file);
     }
 
-    // Render preview
-    async function renderPreview() {
-      const text = textInput.value;
-      const font = fontSelect.value;
-      const size = parseInt(fontSize.value);
-      const txtColor = textColor.value;
-      const txtBg = textBgTransparent.checked ? null : textBgColor.value;
-      const imgBg = imgBgTransparent.checked ? null : imgBgColor.value;
-      const pad = parseInt(imgPadding.value);
-      
-      // Wait for font
-      await document.fonts.ready;
-      await document.fonts.load(`${size}px "${font}"`);
-      
-      if (!uploadedImage) {
-        // Empty state
-        previewCanvas.width = 300;
-        previewCanvas.height = 200;
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, 300, 200);
-        ctx.fillStyle = '#999';
-        ctx.font = '14px "DM Sans"';
-        ctx.textAlign = 'center';
-        ctx.fillText('請先上傳圖片', 150, 100);
-        return;
+    // ==================== Canvas Interaction ====================
+    function handleMouseDown(e) {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      // Hit test (texts first, then image)
+      const hit = hitTest(x, y);
+
+      if (hit) {
+        state.selectedId = hit.id;
+        isDragging = true;
+        dragTarget = hit;
+        dragOffsetX = x - hit.x;
+        dragOffsetY = y - hit.y;
+        canvasWrapper.classList.add('dragging');
+        canvas.style.cursor = 'grabbing';
+      } else {
+        state.selectedId = null;
       }
-      
-      const imgW = uploadedImage.width;
-      const imgH = uploadedImage.height;
-      
-      // Calculate text height
-      const textHeight = text ? size * 1.4 + 16 : 0;
-      
-      // Set canvas size
-      const canvasW = imgW + pad * 2;
-      const canvasH = imgH + pad * 2 + textHeight;
-      
-      previewCanvas.width = canvasW;
-      previewCanvas.height = canvasH;
-      
-      // Clear (transparent)
-      ctx.clearRect(0, 0, canvasW, canvasH);
-      
-      // Image background (optional)
-      if (imgBg) {
-        ctx.fillStyle = imgBg;
-        ctx.fillRect(0, 0, canvasW, imgH + pad * 2);
-      }
-      
-      // Image
-      ctx.drawImage(uploadedImage, pad, pad, imgW, imgH);
-      
-      // Text area
-      if (text) {
-        const textY = imgH + pad * 2;
-        
-        // Text background (optional)
-        if (txtBg) {
-          ctx.fillStyle = txtBg;
-          ctx.fillRect(0, textY, canvasW, textHeight);
+
+      updateUI();
+      render();
+    }
+
+    function handleMouseMove(e) {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      if (isDragging && dragTarget) {
+        if (dragTarget.id === 'image' && state.image) {
+          state.image.x = x - dragOffsetX;
+          state.image.y = y - dragOffsetY;
+        } else {
+          const textItem = state.textItems.find(t => t.id === dragTarget.id);
+          if (textItem) {
+            textItem.x = x - dragOffsetX;
+            textItem.y = y - dragOffsetY;
+          }
         }
-        
-        // Text
-        ctx.font = `${size}px "${font}"`;
-        ctx.fillStyle = txtColor;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(text, canvasW / 2, textY + textHeight / 2);
+        render();
+      } else {
+        // Update cursor
+        const hit = hitTest(x, y);
+        canvas.style.cursor = hit ? 'grab' : 'default';
       }
     }
 
-    // Event listeners
-    textInput.addEventListener('input', renderPreview);
-    fontSelect.addEventListener('change', renderPreview);
-    fontSize.addEventListener('input', () => {
-      fontSizeValue.textContent = fontSize.value + 'px';
-      renderPreview();
-    });
-    textColor.addEventListener('input', renderPreview);
-    textBgColor.addEventListener('input', renderPreview);
-    textBgTransparent.addEventListener('change', renderPreview);
-    imgBgColor.addEventListener('input', renderPreview);
-    imgBgTransparent.addEventListener('change', renderPreview);
-    imgPadding.addEventListener('input', () => {
-      imgPaddingValue.textContent = imgPadding.value + 'px';
-      renderPreview();
-    });
+    function handleMouseUp() {
+      isDragging = false;
+      dragTarget = null;
+      canvasWrapper.classList.remove('dragging');
+      canvas.style.cursor = 'default';
+    }
 
-    // Copy
-    copyBtn.addEventListener('click', async () => {
-      if (!uploadedImage) return;
-      
+    function handleDoubleClick(e) {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      const hit = hitTest(x, y);
+      if (hit && hit.id !== 'image') {
+        // Focus text input
+        state.selectedId = hit.id;
+        updateUI();
+        propText.focus();
+        propText.select();
+      }
+    }
+
+    function hitTest(x, y) {
+      // Check texts (reverse order for top-most first)
+      for (let i = state.textItems.length - 1; i >= 0; i--) {
+        const t = state.textItems[i];
+        const bounds = getTextBounds(t);
+        if (x >= bounds.x && x <= bounds.x + bounds.width &&
+            y >= bounds.y && y <= bounds.y + bounds.height) {
+          return { id: t.id, x: t.x, y: t.y };
+        }
+      }
+
+      // Check image
+      if (state.image) {
+        const img = state.image;
+        if (x >= img.x && x <= img.x + img.width &&
+            y >= img.y && y <= img.y + img.height) {
+          return { id: 'image', x: img.x, y: img.y };
+        }
+      }
+
+      return null;
+    }
+
+    function getTextBounds(textItem) {
+      ctx.font = `${textItem.fontSize}px "${textItem.fontFamily}"`;
+      const metrics = ctx.measureText(textItem.text || '文字');
+      const width = metrics.width + 16;
+      const height = textItem.fontSize * 1.4;
+      return { x: textItem.x, y: textItem.y, width, height };
+    }
+
+    // ==================== Text Management ====================
+    function addNewText() {
+      const id = 'text_' + state.nextTextId++;
+      const centerX = canvas.width / 2 - 50;
+      const centerY = canvas.height / 2 - 20;
+
+      state.textItems.push({
+        id,
+        x: centerX,
+        y: centerY,
+        text: '新文字',
+        fontSize: 32,
+        fontFamily: 'Noto Sans TC',
+        color: '#000000',
+        bgColor: null
+      });
+
+      state.selectedId = id;
+      updateUI();
+      render();
+
+      // Focus input
+      setTimeout(() => {
+        propText.focus();
+        propText.select();
+      }, 50);
+    }
+
+    function deleteSelected() {
+      if (!state.selectedId) return;
+
+      if (state.selectedId === 'image') {
+        state.image = null;
+        emptyState.style.display = 'block';
+        canvasWrapper.style.display = 'none';
+        copyBtn.disabled = true;
+        toolbarInfo.textContent = '點擊上傳或貼上圖片開始';
+      } else {
+        state.textItems = state.textItems.filter(t => t.id !== state.selectedId);
+      }
+
+      state.selectedId = null;
+      updateUI();
+      render();
+    }
+
+    function updateSelectedText() {
+      if (!state.selectedId || state.selectedId === 'image') return;
+
+      const textItem = state.textItems.find(t => t.id === state.selectedId);
+      if (!textItem) return;
+
+      textItem.text = propText.value;
+      textItem.fontFamily = propFont.value;
+      textItem.fontSize = parseInt(propSize.value);
+      textItem.color = propColor.value;
+      textItem.bgColor = propBgTransparent.checked ? null : propBgColor.value;
+
+      updateTextList();
+      render();
+    }
+
+    // ==================== UI Updates ====================
+    function updateUI() {
+      updateTextList();
+      updatePropsPanel();
+      deleteBtn.disabled = !state.selectedId;
+    }
+
+    function updateTextList() {
+      if (state.textItems.length === 0) {
+        textList.innerHTML = '<div class="no-selection">尚無文字，點擊「新增文字」</div>';
+        return;
+      }
+
+      textList.innerHTML = state.textItems.map(t => `
+        <div class="text-item ${state.selectedId === t.id ? 'selected' : ''}" data-id="${t.id}">
+          <span class="text-item-preview">${t.text || '(空白)'}</span>
+          <button class="text-item-delete" data-id="${t.id}">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+      `).join('');
+
+      // Add click handlers
+      textList.querySelectorAll('.text-item').forEach(el => {
+        el.addEventListener('click', (e) => {
+          if (!e.target.closest('.text-item-delete')) {
+            state.selectedId = el.dataset.id;
+            updateUI();
+            render();
+          }
+        });
+      });
+
+      textList.querySelectorAll('.text-item-delete').forEach(el => {
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = el.dataset.id;
+          state.textItems = state.textItems.filter(t => t.id !== id);
+          if (state.selectedId === id) state.selectedId = null;
+          updateUI();
+          render();
+        });
+      });
+    }
+
+    function updatePropsPanel() {
+      if (!state.selectedId) {
+        propSection.style.display = 'none';
+        return;
+      }
+
+      propSection.style.display = 'block';
+
+      if (state.selectedId === 'image') {
+        propTitle.textContent = '圖片屬性';
+        textProps.style.display = 'none';
+      } else {
+        propTitle.textContent = '文字屬性';
+        textProps.style.display = 'block';
+
+        const textItem = state.textItems.find(t => t.id === state.selectedId);
+        if (textItem) {
+          propText.value = textItem.text;
+          propFont.value = textItem.fontFamily;
+          propSize.value = textItem.fontSize;
+          propSizeValue.textContent = textItem.fontSize + 'px';
+          propColor.value = textItem.color;
+          propBgTransparent.checked = !textItem.bgColor;
+          if (textItem.bgColor) propBgColor.value = textItem.bgColor;
+        }
+      }
+    }
+
+    // ==================== Rendering ====================
+    async function render() {
+      // Calculate canvas size
+      let width = 400;
+      let height = 300;
+      const pad = state.canvasPadding;
+
+      if (state.image) {
+        // Find bounding box of all elements
+        let minX = state.image.x;
+        let minY = state.image.y;
+        let maxX = state.image.x + state.image.width;
+        let maxY = state.image.y + state.image.height;
+
+        state.textItems.forEach(t => {
+          const bounds = getTextBounds(t);
+          minX = Math.min(minX, bounds.x);
+          minY = Math.min(minY, bounds.y);
+          maxX = Math.max(maxX, bounds.x + bounds.width);
+          maxY = Math.max(maxY, bounds.y + bounds.height);
+        });
+
+        width = Math.max(400, maxX + pad);
+        height = Math.max(300, maxY + pad);
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+
+      // Clear
+      ctx.clearRect(0, 0, width, height);
+
+      // Background
+      if (state.canvasBg) {
+        ctx.fillStyle = state.canvasBg;
+        ctx.fillRect(0, 0, width, height);
+      }
+
+      // Draw image
+      if (state.image) {
+        ctx.drawImage(state.image.img, state.image.x, state.image.y, state.image.width, state.image.height);
+
+        // Selection border
+        if (state.selectedId === 'image') {
+          ctx.strokeStyle = '#3b82f6';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([5, 5]);
+          ctx.strokeRect(state.image.x - 2, state.image.y - 2, state.image.width + 4, state.image.height + 4);
+          ctx.setLineDash([]);
+        }
+      }
+
+      // Draw texts
+      await document.fonts.ready;
+
+      for (const t of state.textItems) {
+        await document.fonts.load(`${t.fontSize}px "${t.fontFamily}"`);
+
+        ctx.font = `${t.fontSize}px "${t.fontFamily}"`;
+        const bounds = getTextBounds(t);
+
+        // Background
+        if (t.bgColor) {
+          ctx.fillStyle = t.bgColor;
+          ctx.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
+        }
+
+        // Text
+        ctx.fillStyle = t.color;
+        ctx.textBaseline = 'middle';
+        ctx.fillText(t.text || '', t.x + 8, t.y + bounds.height / 2);
+
+        // Selection border
+        if (state.selectedId === t.id) {
+          ctx.strokeStyle = '#3b82f6';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([5, 5]);
+          ctx.strokeRect(bounds.x - 2, bounds.y - 2, bounds.width + 4, bounds.height + 4);
+          ctx.setLineDash([]);
+        }
+      }
+    }
+
+    // ==================== Export ====================
+    async function copyToClipboard() {
+      if (!state.image) return;
+
+      // Save selection state
+      const savedSelection = state.selectedId;
+      state.selectedId = null;
+
+      // Render without selection
+      await render();
+
       try {
-        const blob = await new Promise(resolve => previewCanvas.toBlob(resolve, 'image/png'));
-        await navigator.clipboard.write([
-          new ClipboardItem({ 'image/png': blob })
-        ]);
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
         showToast();
       } catch (err) {
         console.error('Copy failed:', err);
         alert('複製失敗');
       }
-    });
 
-    // Clear
-    clearBtn.addEventListener('click', () => {
-      uploadedImage = null;
-      uploadArea.classList.remove('has-image');
-      uploadArea.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-          <circle cx="8.5" cy="8.5" r="1.5"></circle>
-          <polyline points="21 15 16 10 5 21"></polyline>
-        </svg>
-        <p>點擊上傳、拖放、或直接 Ctrl+V 貼上</p>
-        <input type="file" id="imageInput" accept="image/*">
-      `;
-      document.getElementById('imageInput').addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) loadImage(file);
-      });
-      copyBtn.disabled = true;
-      textInput.value = '';
-      renderPreview();
-    });
+      // Restore selection
+      state.selectedId = savedSelection;
+      render();
+    }
 
     function showToast() {
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 2000);
     }
 
-    // Init
-    renderPreview();
+    // ==================== Theme Toggle ====================
+    const themeToggle = document.getElementById('themeToggle');
+
+    function initTheme() {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'light') {
+        document.documentElement.classList.add('light');
+      }
+    }
+
+    function toggleTheme() {
+      const isLight = document.documentElement.classList.toggle('light');
+      localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    }
+
+    themeToggle.addEventListener('click', toggleTheme);
+
+    // ==================== Start ====================
+    initTheme();
+    init();
   </script>
 </body>
 </html>
