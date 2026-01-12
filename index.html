@@ -213,6 +213,35 @@
       color: var(--text-muted);
     }
 
+    /* Grid Toggle Buttons */
+    .grid-btn {
+      width: 32px;
+      height: 32px;
+      padding: 6px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .grid-btn:hover {
+      color: var(--text);
+      border-color: var(--text-muted);
+    }
+
+    .grid-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .grid-btn svg {
+      width: 100%;
+      height: 100%;
+    }
+
     .setting-group select {
       padding: 8px 12px;
       background: var(--bg);
@@ -229,14 +258,21 @@
       gap: 16px;
     }
 
-    @media (min-width: 900px) {
-      .cards-grid {
-        grid-template-columns: repeat(3, 1fr);
-      }
+    .cards-grid.cols-1 {
+      grid-template-columns: 1fr;
+    }
+
+    .cards-grid.cols-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .cards-grid.cols-3 {
+      grid-template-columns: repeat(3, 1fr);
     }
 
     @media (max-width: 600px) {
-      .cards-grid {
+      .cards-grid.cols-2,
+      .cards-grid.cols-3 {
         grid-template-columns: 1fr;
       }
     }
@@ -564,6 +600,19 @@
           <option value="white">白色</option>
         </select>
       </div>
+
+      <div class="setting-group grid-toggle">
+        <label>排列</label>
+        <button class="grid-btn" data-cols="1" title="單欄">
+          <svg viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+        </button>
+        <button class="grid-btn active" data-cols="2" title="雙欄">
+          <svg viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="7" height="16" rx="1"/><rect x="13" y="4" width="7" height="16" rx="1"/></svg>
+        </button>
+        <button class="grid-btn" data-cols="3" title="三欄">
+          <svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="9.5" y="4" width="5" height="16" rx="1"/><rect x="16" y="4" width="5" height="16" rx="1"/></svg>
+        </button>
+      </div>
     </div>
 
     <!-- Cards -->
@@ -796,18 +845,18 @@
       // 如果有收藏字體，顯示「我的最愛」區塊
       if (favoriteFonts.length > 0) {
         html += '<div class="section-divider favorites">我的最愛</div>';
-        html += favoriteFonts.map((font) => createCardHtml(font, fonts.indexOf(font))).join('');
+        html += favoriteFonts.map((font) => createCardHtml(font)).join('');
         html += '<div class="section-divider">全部字體</div>';
       }
 
       // 顯示其他字體
-      html += otherFonts.map((font) => createCardHtml(font, fonts.indexOf(font))).join('');
+      html += otherFonts.map((font) => createCardHtml(font)).join('');
 
       cardsGrid.innerHTML = html;
 
       // Copy handlers
       document.querySelectorAll('.copy-btn').forEach(btn => {
-        btn.addEventListener('click', () => copyCanvas(parseInt(btn.dataset.index)));
+        btn.addEventListener('click', () => copyCanvas(btn.dataset.font));
       });
 
       // Favorite handlers
@@ -819,8 +868,14 @@
       });
     }
 
-    function createCardHtml(font, index) {
+    // 將字體名稱轉換為安全的 ID
+    function fontNameToId(name) {
+      return name.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
+    }
+
+    function createCardHtml(font) {
       const isFav = isFavorite(font.name);
+      const canvasId = fontNameToId(font.name);
       return `
         <div class="card">
           <div class="card-header">
@@ -833,7 +888,7 @@
               </div>
               <div class="card-font-name">${font.name}</div>
             </div>
-            <button class="copy-btn" data-index="${index}">
+            <button class="copy-btn" data-font="${font.name}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
@@ -842,7 +897,7 @@
             </button>
           </div>
           <div class="card-preview ${bgType.value === 'white' ? 'white-bg' : ''}">
-            <canvas id="canvas-${index}"></canvas>
+            <canvas id="canvas-${canvasId}"></canvas>
           </div>
         </div>
       `;
@@ -1057,14 +1112,14 @@
 
     // Render all canvases
     async function renderAll() {
-      for (let i = 0; i < fonts.length; i++) {
-        await renderCanvas(fonts[i].name, `canvas-${i}`);
+      for (const font of fonts) {
+        await renderCanvas(font.name, `canvas-${fontNameToId(font.name)}`);
       }
     }
 
     // Copy canvas to clipboard
-    async function copyCanvas(index) {
-      const canvas = document.getElementById(`canvas-${index}`);
+    async function copyCanvas(fontName) {
+      const canvas = document.getElementById(`canvas-${fontNameToId(fontName)}`);
       try {
         const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
         await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
@@ -1097,8 +1152,29 @@
 
     themeToggle.addEventListener('click', toggleTheme);
 
+    // Grid layout toggle
+    const gridBtns = document.querySelectorAll('.grid-btn');
+
+    function initGridLayout() {
+      const savedCols = localStorage.getItem('gridCols') || '2';
+      setGridCols(savedCols);
+    }
+
+    function setGridCols(cols) {
+      cardsGrid.className = 'cards-grid cols-' + cols;
+      gridBtns.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.cols === cols);
+      });
+      localStorage.setItem('gridCols', cols);
+    }
+
+    gridBtns.forEach(btn => {
+      btn.addEventListener('click', () => setGridCols(btn.dataset.cols));
+    });
+
     // Init
     initTheme();
+    initGridLayout();
     initCards();
     renderAll();
   </script>
