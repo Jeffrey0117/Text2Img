@@ -643,6 +643,28 @@
       }
     }
 
+    // 如果沒有選取文字，自動選取全部
+    function selectAllIfNoSelection() {
+      const sel = window.getSelection();
+      const hasSelection = sel.rangeCount > 0 && !sel.isCollapsed && editor.contains(sel.anchorNode);
+
+      if (!hasSelection && editor.textContent.trim()) {
+        // 選取編輯器內所有內容
+        const range = document.createRange();
+        range.selectNodeContents(editor);
+        sel.removeAllRanges();
+        sel.addRange(range);
+        return true; // 表示自動選取了全部
+      }
+      return false;
+    }
+
+    // 包裝函數：先嘗試恢復選取，如果沒選取則選全部
+    function ensureSelection() {
+      restoreSelection();
+      selectAllIfNoSelection();
+    }
+
     // Slider 顯示即時更新
     selSize.addEventListener('input', () => {
       selSizeValue.textContent = selSize.value + 'px';
@@ -650,7 +672,7 @@
 
     // 放開滑桿時套用大小
     selSize.addEventListener('change', () => {
-      restoreSelection();
+      ensureSelection();
       const size = selSize.value + 'px';
       applyStyleToSelection('fontSize', size);
       renderAll();
@@ -658,34 +680,34 @@
 
     // Bold toggle
     document.getElementById('toggleBold').addEventListener('click', () => {
-      restoreSelection();
+      ensureSelection();
       document.execCommand('bold');
       renderAll();
     });
 
     // 即時套用文字色
     foreColor.addEventListener('input', () => {
-      restoreSelection();
+      ensureSelection();
       document.execCommand('foreColor', false, foreColor.value);
       renderAll();
     });
 
     // 即時套用底色
     hiliteColor.addEventListener('input', () => {
-      restoreSelection();
+      ensureSelection();
       document.execCommand('hiliteColor', false, hiliteColor.value);
       renderAll();
     });
 
     document.getElementById('removeHilite').addEventListener('click', () => {
-      restoreSelection();
+      ensureSelection();
       document.execCommand('hiliteColor', false, 'transparent');
       renderAll();
     });
 
     // Clear all
     document.getElementById('clearAll').addEventListener('click', () => {
-      restoreSelection();
+      ensureSelection();
       document.execCommand('removeFormat');
       renderAll();
     });
