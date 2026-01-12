@@ -665,6 +665,12 @@
       selectAllIfNoSelection();
     }
 
+    // 清除選取狀態
+    function clearSelection() {
+      window.getSelection().removeAllRanges();
+      savedRange = null;
+    }
+
     // Slider 顯示即時更新
     selSize.addEventListener('input', () => {
       selSizeValue.textContent = selSize.value + 'px';
@@ -675,6 +681,7 @@
       ensureSelection();
       const size = selSize.value + 'px';
       applyStyleToSelection('fontSize', size);
+      clearSelection();
       renderAll();
     });
 
@@ -682,6 +689,7 @@
     document.getElementById('toggleBold').addEventListener('click', () => {
       ensureSelection();
       document.execCommand('bold');
+      clearSelection();
       renderAll();
     });
 
@@ -689,6 +697,7 @@
     foreColor.addEventListener('input', () => {
       ensureSelection();
       document.execCommand('foreColor', false, foreColor.value);
+      clearSelection();
       renderAll();
     });
 
@@ -696,12 +705,14 @@
     hiliteColor.addEventListener('input', () => {
       ensureSelection();
       document.execCommand('hiliteColor', false, hiliteColor.value);
+      clearSelection();
       renderAll();
     });
 
     document.getElementById('removeHilite').addEventListener('click', () => {
       ensureSelection();
       document.execCommand('hiliteColor', false, 'transparent');
+      clearSelection();
       renderAll();
     });
 
@@ -709,6 +720,7 @@
     document.getElementById('clearAll').addEventListener('click', () => {
       ensureSelection();
       document.execCommand('removeFormat');
+      clearSelection();
       renderAll();
     });
 
