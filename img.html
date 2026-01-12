@@ -148,6 +148,17 @@
       margin-left: auto;
     }
 
+    .toolbar-btn.copy-main {
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .toolbar-btn.copy-main svg {
+      width: 18px;
+      height: 18px;
+    }
+
     /* Canvas Container */
     .canvas-container {
       flex: 1;
@@ -483,17 +494,15 @@
           刪除
         </button>
 
-        <div class="toolbar-divider"></div>
+        <span class="toolbar-info" id="toolbarInfo">點擊上傳或貼上圖片開始</span>
 
-        <button class="toolbar-btn primary" id="copyBtn" disabled>
+        <button class="toolbar-btn primary copy-main" id="copyBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
           </svg>
           複製圖片
         </button>
-
-        <span class="toolbar-info" id="toolbarInfo">點擊上傳或貼上圖片開始</span>
       </div>
 
       <!-- Canvas Container -->
@@ -667,6 +676,8 @@
     // ==================== Initialization ====================
     function init() {
       setupEventListeners();
+      // 預設新增一個文字項目
+      addNewText();
       render();
     }
 
