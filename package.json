@@ -1,0 +1,9 @@
+{
+  "name": "text2img",
+  "version": "1.0.0",
+  "description": "Image text overlay tool",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
