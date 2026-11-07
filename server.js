@@ -22,6 +22,14 @@ const MIME = {
 
 http.createServer((req, res) => {
   const url = req.url.split('?')[0]
+  let decoded
+  try { decoded = decodeURIComponent(url) } catch { decoded = url }
+  // The static root is the repo root — never serve dotfiles/dirs (.env, .git/…).
+  if ([url, decoded].some((u) => u.split(/[\\/]/).some((seg) => seg.startsWith('.')))) {
+    res.writeHead(404)
+    res.end('Not Found')
+    return
+  }
   const file = url === '/' ? '/img.html' : url
   const filePath = path.join(__dirname, file)
 
